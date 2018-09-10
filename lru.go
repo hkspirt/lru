@@ -17,7 +17,7 @@ type node struct {
 }
 
 type LruContainer struct {
-	sync.RWMutex
+	mutex sync.RWMutex
 
 	maxLen  int // if maxLen<=0 then no limit
 	lruList *list.List
@@ -34,8 +34,8 @@ func NewLruContainer(maxLen int) *LruContainer {
 
 //压入队头
 func (lc *LruContainer) PushFront(k, v interface{}) {
-	lc.Lock()
-	defer lc.Unlock()
+	lc.mutex.Lock()
+	defer lc.mutex.Unlock()
 	if e, ok := lc.datas[k]; ok {
 		e.Value.(*node).v = v
 		lc.lruList.MoveToFront(e)
@@ -59,15 +59,15 @@ func (lc *LruContainer) popBack() (interface{}, bool) {
 }
 
 func (lc *LruContainer) PopBack() (interface{}, bool) {
-	lc.Lock()
-	defer lc.Unlock()
+	lc.mutex.Lock()
+	defer lc.mutex.Unlock()
 	return lc.popBack()
 }
 
 //查找任意值
 func (lc *LruContainer) Get(k interface{}) (interface{}, bool) {
-	lc.Lock()
-	defer lc.Unlock()
+	lc.mutex.Lock()
+	defer lc.mutex.Unlock()
 	if e, ok := lc.datas[k]; ok {
 		lc.lruList.MoveToFront(e)
 		return e.Value.(*node).v, ok
@@ -85,14 +85,14 @@ func (lc *LruContainer) del(k interface{}) {
 
 //删除任意值
 func (lc *LruContainer) Del(k interface{}) {
-	lc.Lock()
-	defer lc.Unlock()
+	lc.mutex.Lock()
+	defer lc.mutex.Unlock()
 	lc.del(k)
 }
 
 //长度
 func (lc *LruContainer) Len() int {
-	lc.RLock()
-	defer lc.RUnlock()
+	lc.mutex.RLock()
+	defer lc.mutex.RUnlock()
 	return lc.lruList.Len()
 }
